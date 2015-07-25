@@ -4,6 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import os
 from block_io import BlockIo
 from flask import Response
+import math
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -22,19 +23,21 @@ db = SQLAlchemy(app)
 class Shake(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer)
-    location = db.Column(db.String(100))
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
     timestamp = db.Column(db.Integer)
     amount = db.Column(db.Float)
     done = db.Column(db.Boolean)
-    def __init__(self, user_id, location, timestamp, amount):
+    def __init__(self, user_id, lat, long, timestamp, amount):
             self.user_id = user_id
-            self.location = location
+            self.lat = lat
+            self.long = long
             self.timestamp = timestamp
             self.amount = amount
             self.done = False
 
     def __str__(self):
-        return "user_id %d location %s timestamp %d amount %f " % (self.user_id, self.location, self.timestamp, self.amount)
+        return "user_id %d lat %f long %f timestamp %d amount %f " % (self.user_id, self.lat, self.long, self.timestamp, self.amount)
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -54,10 +57,21 @@ def db_insert(obj):
     db.session.commit()
 
 time_threshold = 7
-distance_threshold = 20
+distance_threshold = 10 #in meters
 
-def get_distance(distance1, distance2): ##TODO
-    return 0
+##adapted from http://stackoverflow.com/questions/1502590/calculate-distance-between-two-points-in-google-maps-v3
+def rad(x):
+    return (x*math.pi)/180
+
+def get_distance(lat1, long1, lat2, long2): 
+    R = 6378137
+    dLat = rad(lat2 - lat1)
+    dLong = rad(long2 - long1)
+    a = math.sin(dLat / 2) * math.sin(dLat / 2) + math.cos(rad(lat1)) * math.cos(rad(lat2)) * math.sin(dLong / 2) * math.sin(dLong / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    d = R * c
+    print "%f %f %f %f - %f\n" % (lat1, long1, lat2, long2, d)
+    return d
 
 def is_matching_shake(shake1, shake2): ##TODO 
     if shake1.amount * shake2.amount >= 0:  ##have same sign
@@ -65,8 +79,8 @@ def is_matching_shake(shake1, shake2): ##TODO
     if shake1.id == shake2.id:
         return False
     time_diff = abs(shake1.timestamp - shake2.timestamp)
-    distance = get_distance(shake1.location, shake2.location)
-    return time_diff < time_threshold and distance < distance_threshold
+    distance = get_distance(shake1.lat, shake1.long, shake2.lat, shake2.long)
+    return time_diff <= time_threshold and distance <= distance_threshold
 
 def get_matching_shake(shake1):
     shakes = Shake.query.all()
@@ -95,15 +109,16 @@ def start_transaction(shake1, shake2): ##TODO
 @app.route('/shake', methods=['GET'])
 def shake_func():
     user_id = request.args.get('user_id')
-    location = request.args.get('location')
+    lat = request.args.get('lat')
+    long = request.args.get('long') 
     timestamp = initial_time_sec = get_time_in_sec()
     amount = request.args.get('amount') ##This will be none for one of the shakes
     if not amount:
         amount = -1.0
-    shake = Shake(user_id, location, timestamp, amount)
+    shake = Shake(user_id, lat, long, timestamp, amount)
     db_insert(shake)
     #transaction is only done by giver
-    num_seconds_retry = 5
+    num_seconds_retry = 6
     response = None
     if amount < 0:  #receiver
         time.sleep(num_seconds_retry)
