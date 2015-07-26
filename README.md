@@ -49,7 +49,13 @@ HackDelhi 2015 Hackathon @ 91Springboard
 
 ## Built With
 
-	- Flask on the backend, with ShakeJS being used for mimicing the API requests on the phone
+	- Flask on the backend for the server and serving the API's
+
+	- ShakeJS being used for mimicing the API requests on the phone
+
+	- CoinSecure API
+
+	- block.io API
 
 ## What's next for ShakePay
 
