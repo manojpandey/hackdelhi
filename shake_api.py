@@ -1,4 +1,4 @@
-from flask import request, jsonify, Flask
+from flask import request, jsonify, Flask, render_template, url_for
 import time
 from flask.ext.sqlalchemy import SQLAlchemy
 import os
@@ -187,12 +187,14 @@ def create_db():
     return "done"
 
 
+
+@app.route('/')
+def shaker():
+    return render_template('a.html')
+
 def main():
+    app.run(host='0.0.0.0', debug=True, port=12341, use_reloader=True, threaded=True)
 
-    # app.run(host='0.0.0.0', debug=True, port=12341, use_reloader=True, threaded=True)
-
-    port = int (os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, threaded=True)
-    
 if __name__ == '__main__':
     main()
+
