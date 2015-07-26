@@ -118,7 +118,7 @@ def shake_func():
     shake = Shake(user_id, lat, long, timestamp, amount)
     db_insert(shake)
     #transaction is only done by giver
-    num_seconds_retry = 6
+    num_seconds_retry = 8
     response = None
     if amount < 0:  #receiver
         time.sleep(num_seconds_retry)
