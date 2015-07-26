@@ -12,10 +12,9 @@ HackDelhi 2015 Hackathon @ 91Springboard
 
 
 ## What is it ?
+	
 	- ShakePay allows you to make bitcoin transactions by just your phone with a shake. 		
 
-## How it works
-	- 
 
 ## How to test
 
@@ -49,7 +48,9 @@ HackDelhi 2015 Hackathon @ 91Springboard
 		- Type the amount to be sent by one user, and shake both devices, and transaction will be completed with appropriate response
 
 ## Built With
+
 	- Flask on the backend, with ShakeJS being used for mimicing the API requests on the phone
 
 ## What's next for ShakePay
+
 	- Build Android/iOS app for it.
